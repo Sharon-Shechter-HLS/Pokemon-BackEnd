@@ -31,7 +31,11 @@ export class PokemonsService {
   }
 
   async getRandomPokemon() {
-    const randomId = Math.floor(Math.random() * 898) + 1; // Generate a random ID
-    return this.pokemonsRepository.findPokemonById(randomId); // Fetch the Pokémon by ID
+    const randomId = Math.floor(Math.random() * 898) + 1; 
+    return this.pokemonsRepository.findPokemonById(randomId); 
+  }
+
+  async findPokemonById(pokemonId: number) {
+    return this.pokemonsRepository.findPokemonById(pokemonId); 
   }
 }

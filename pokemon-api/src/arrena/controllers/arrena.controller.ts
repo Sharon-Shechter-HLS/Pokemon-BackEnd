@@ -1,12 +1,15 @@
 import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { StartGameDto } from '../dto/start-game.dto';
+import { ArrenaService } from '../services/arrena.service';
 
 @Controller('arena')
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 export class ArrenaController {
+  constructor(private readonly arrenaService: ArrenaService) {}
+
   @Post('startGame')
-  startGame(@Body() startGameDto: StartGameDto): string {
+  async startGame(@Body() startGameDto: StartGameDto): Promise<string> {
     const { userId, pokemonId } = startGameDto;
-    return `Game started for User ID: ${userId} with Pokemon ID: ${pokemonId}`;
+    return await this.arrenaService.startGame(userId, pokemonId);
   }
 }
