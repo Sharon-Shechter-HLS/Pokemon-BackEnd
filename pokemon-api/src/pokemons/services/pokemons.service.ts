@@ -29,4 +29,9 @@ export class PokemonsService {
       userId, 
     });
   }
+
+  async getRandomPokemon() {
+    const randomId = Math.floor(Math.random() * 898) + 1; 
+    return this.pokemonsRepository.findPokemonById(randomId);
+  }
 }
