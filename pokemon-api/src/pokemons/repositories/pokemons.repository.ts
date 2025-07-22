@@ -53,8 +53,4 @@ export class PokemonsRepository {
       meta: { start, end, total },
     };
   }
-
-  async findPokemonById(id: number) {
-    return this.pokemonModel.findOne({ id }).exec();
-  }
 }
