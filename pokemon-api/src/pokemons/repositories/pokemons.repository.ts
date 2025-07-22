@@ -1,49 +1,56 @@
 import { Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { Pokemon, POKEMON_MODEL_NAME } from '../schemas/pokemonSchema';
+import { Pokemon } from '../schemas/pokemonSchema';
+import { POKEMON_MODEL_NAME } from '../pokemonConsts';
+import { getAllPokemonsAggregation, getUserPokemonsAggregation } from '../aggregations/pokemons.aggregation';
+import { User } from '../schemas/userSchema';
 
 @Injectable()
 export class PokemonsRepository {
   constructor(
     @InjectModel(POKEMON_MODEL_NAME) private readonly pokemonModel: Model<Pokemon>,
+    @InjectModel('User') private readonly userModel: Model<User>,
   ) {}
 
   async findPokemons({
     page,
     rowsPerPage,
-    sortBy,
-    filters,
+    sort,
+    search,
+    fromMy,
+    userId,
   }: {
     page: number;
     rowsPerPage: number;
-    sortBy?: string;
-    filters?: any;
+    sort?: { key: string; order: 'asc' | 'desc' };
+    search?: string;
+    fromMy?: boolean;
+    userId?: number;
   }) {
-    const skip =  (page - 1) * rowsPerPage;
-    const limit = page == 1 ? rowsPerPage: rowsPerPage + 1;
+    const skip = (page - 1) * rowsPerPage;
+    const limit = page == 1 ? rowsPerPage : rowsPerPage + 1; 
 
-    const total = await this.pokemonModel.countDocuments(filters);
+    const pipeline = fromMy && userId
+      ? getUserPokemonsAggregation(userId, skip, limit, search, sort)
+      : getAllPokemonsAggregation(skip, limit, search, sort);
 
-    const queryBuilder = this.pokemonModel.find(filters).skip(skip).limit(limit).lean();
+    const model = fromMy && userId
+      ? this.userModel   
+      : this.pokemonModel; 
 
-    if (sortBy) {
-      const [key, order] = sortBy.split('-');
-      queryBuilder.sort({ [key]: order === 'asc' ? 1 : -1 });
-    }
+    
+    const [ { data = [], total = 0 } = {} ] = await model
+      .aggregate(pipeline)
+      .exec();
 
-    const data = await queryBuilder.exec();
 
     const start = skip + 1;
-    const end =skip + data.length;
+    const end = skip + data.length;
 
     return {
       data,
-      meta: {
-        start,
-        end,
-        total,
-      },
+      meta: { start, end, total },
     };
   }
 }
