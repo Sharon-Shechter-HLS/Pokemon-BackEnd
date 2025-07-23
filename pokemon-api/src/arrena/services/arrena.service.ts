@@ -1,9 +1,10 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PokemonsService } from '../../pokemons/services/pokemons.service';
 import { ArrenaRepository } from '../repositories/arrena.repository';
-import { Turn, MAX_CATCH_ATTEMPTS } from '../arenaConsts';
+import { Turn } from '../arenaConsts';
 import { Game } from '../schemas/gameSchema';
 import { attemptCatch, canCatch } from '../businessLogic /catchLogic';
+import { calculateNewLife } from '../businessLogic /attackLogic';
 
 @Injectable()
 export class ArrenaService {
@@ -62,4 +63,40 @@ export class ArrenaService {
 
     return await this.arrenaRepository.updateGame(game);
   }
+
+
+  async attackAttempt(gameId: number): Promise<Game> {
+  const game = await this.arrenaRepository.findGameById(gameId);
+
+  if (game.turn == Turn.USER) {
+    game.opponentCurrentLife = calculateNewLife(
+      game.userPokemon.base.Attack,
+      game.opponentCurrentLife,
+      game.opponentPokemon.base.HP,
+    );
+
+    if (game.opponentCurrentLife === 0) {
+      game.winner = game.userPokemon.name.english;
+      game.caught = false;
+      return await this.arrenaRepository.updateGame(game);
+    }
+    game.turn = Turn.OPPONENT; 
+  }
+  else if (game.turn == Turn.OPPONENT) {
+    game.userCurrentLife = calculateNewLife(
+      game.opponentPokemon.base.Attack,
+      game.userCurrentLife,
+      game.userPokemon.base.HP,
+    );
+
+    if (game.userCurrentLife === 0) {
+      game.winner = game.opponentPokemon.name.english;
+      return await this.arrenaRepository.updateGame(game);
+    }
+
+    game.turn = Turn.USER;
+  }
+
+  return await this.arrenaRepository.updateGame(game);
+}
 }
