@@ -5,7 +5,7 @@ import { Turn } from '../arenaConsts';
 
 export type GameDocument = Game & Document;
 
-@Schema({ collection: 'Games' })
+@Schema({ collection: 'Games', timestamps: true , versionKey: false}) 
 export class Game {
   @Prop({ required: true })
   gameId: number;
@@ -16,7 +16,7 @@ export class Game {
   @Prop({ required: true, type: Object })
   opponentPokemon: Pokemon;
 
-  @Prop({ required: true, enum: Turn }) 
+  @Prop({ required: true, enum: Turn })
   turn: Turn;
 
   @Prop({ required: true })
