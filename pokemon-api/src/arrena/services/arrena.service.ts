@@ -98,5 +98,5 @@ export class ArrenaService {
   }
 
   return await this.arrenaRepository.updateGame(game);
-}
+  }
 }
