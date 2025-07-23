@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PokemonsService } from '../../pokemons/services/pokemons.service';
 import { ArrenaRepository } from '../repositories/arrena.repository';
 import { Turn } from '../arenaConsts';
+import { Game } from '../schemas/gameSchema';
 
 @Injectable()
 export class ArrenaService {
@@ -10,29 +11,32 @@ export class ArrenaService {
     private readonly arrenaRepository: ArrenaRepository,
   ) {}
 
-  async startGame(userId: number, pokemonId: number): Promise<string> {
+  async startGame(userId: number, pokemonId: number): Promise<Game> {
     const userPokemon = await this.pokemonsService.findPokemonById(pokemonId);
     if (!userPokemon) {
-      return 'User Pokémon not found';
+      throw new HttpException('User Pokémon not found', HttpStatus.NOT_FOUND);
     }
 
     const opponentPokemon = await this.pokemonsService.getRandomPokemon();
     if (!opponentPokemon) {
-      return 'Opponent Pokémon not found';
+      throw new HttpException('Opponent Pokémon not found', HttpStatus.NOT_FOUND);
     }
 
     const gameData = {
-      gameId: Date.now(), 
+      gameId: Date.now(),
       user: userPokemon,
       opponent: opponentPokemon,
-      turn: Turn.USER, 
+      turn: Turn.USER,
       winner: null,
       catchAttempts: 0,
       canCatch: false,
     };
 
     const game = await this.arrenaRepository.createGame(gameData);
+    if (!game) {
+      throw new HttpException('Game creation failed', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
-    return `Game started with ID: ${game.gameId}`;
+    return game;
   }
 }
