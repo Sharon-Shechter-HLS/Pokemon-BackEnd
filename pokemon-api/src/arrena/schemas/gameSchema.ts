@@ -19,14 +19,24 @@ export class Game {
   @Prop({ required: true, enum: Turn }) 
   turn: Turn;
 
+  @Prop({required: true, })
+  opponentCurrentLife: number;
+
+  @Prop({ required: true, })
+  userCurrentLife: number;
+
   @Prop({ type: String, default: null })
   winner: string | null;
+
 
   @Prop({ default: 0 })
   catchAttempts: number;
 
   @Prop({ default: false })
   canCatch: boolean;
+
+
+
 }
 
 export const GameSchema = SchemaFactory.createForClass(Game);

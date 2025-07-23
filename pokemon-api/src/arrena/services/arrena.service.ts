@@ -27,6 +27,8 @@ export class ArrenaService {
       user: userPokemon,
       opponent: opponentPokemon,
       turn: Turn.USER,
+      userCurrentLife: userPokemon.base.HP, 
+      opponentCurrentLife: opponentPokemon.base.HP,
       winner: null,
       catchAttempts: 0,
       canCatch: false,
