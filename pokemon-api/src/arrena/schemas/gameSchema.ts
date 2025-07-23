@@ -11,23 +11,22 @@ export class Game {
   gameId: number;
 
   @Prop({ required: true, type: Object })
-  user: Pokemon;
+  userPokemon: Pokemon;
 
   @Prop({ required: true, type: Object })
-  opponent: Pokemon;
+  opponentPokemon: Pokemon;
 
   @Prop({ required: true, enum: Turn }) 
   turn: Turn;
 
-  @Prop({required: true, })
+  @Prop({ required: true })
   opponentCurrentLife: number;
 
-  @Prop({ required: true, })
+  @Prop({ required: true })
   userCurrentLife: number;
 
   @Prop({ type: String, default: null })
   winner: string | null;
-
 
   @Prop({ default: 0 })
   catchAttempts: number;
@@ -35,8 +34,8 @@ export class Game {
   @Prop({ default: false })
   canCatch: boolean;
 
-
-
+  @Prop({ type: Boolean, default: null })
+  caught: boolean | null;
 }
 
 export const GameSchema = SchemaFactory.createForClass(Game);

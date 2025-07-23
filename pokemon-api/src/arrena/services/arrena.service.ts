@@ -1,8 +1,9 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PokemonsService } from '../../pokemons/services/pokemons.service';
 import { ArrenaRepository } from '../repositories/arrena.repository';
-import { Turn } from '../arenaConsts';
+import { Turn, MAX_CATCH_ATTEMPTS } from '../arenaConsts';
 import { Game } from '../schemas/gameSchema';
+import { attemptCatch, canCatch } from '../businessLogic /catchLogic';
 
 @Injectable()
 export class ArrenaService {
@@ -24,8 +25,8 @@ export class ArrenaService {
 
     const gameData = {
       gameId: Date.now(),
-      user: userPokemon,
-      opponent: opponentPokemon,
+      userPokemon: userPokemon,
+      opponentPokemon: opponentPokemon,
       turn: Turn.USER,
       userCurrentLife: userPokemon.base.HP, 
       opponentCurrentLife: opponentPokemon.base.HP,
@@ -35,10 +36,30 @@ export class ArrenaService {
     };
 
     const game = await this.arrenaRepository.createGame(gameData);
-    if (!game) {
-      throw new HttpException('Game creation failed', HttpStatus.INTERNAL_SERVER_ERROR);
+    return game;
+  }
+
+  async catchAttempt(gameId: number): Promise<Game> {
+    const game = await this.arrenaRepository.findGameById(gameId);
+
+    if (!canCatch(game.catchAttempts)) {
+      game.canCatch = false;
+      return await this.arrenaRepository.updateGame(game);
     }
 
-    return game;
+    const { success, updatedAttempts } = attemptCatch(
+      game.catchAttempts,
+      game.opponentCurrentLife,
+      game.opponentPokemon.base.HP,
+    );
+
+    game.catchAttempts = updatedAttempts;
+    if (success) {
+      game.winner = game.userPokemon.name.english;
+      game.caught = true;
+      game.canCatch = false;
+    }
+
+    return await this.arrenaRepository.updateGame(game);
   }
 }
