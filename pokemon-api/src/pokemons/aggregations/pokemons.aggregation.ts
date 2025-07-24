@@ -57,3 +57,9 @@ export const getPokemonsAggregation = (
 
   return pipeline;
 };
+
+export const getRandomPokemonAggregation = (): PipelineStage[] => {
+  return [
+    { $sample: { size: 1 } }, 
+  ];
+};

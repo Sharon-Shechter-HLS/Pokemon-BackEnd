@@ -3,17 +3,20 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { PokemonsService } from './services/pokemons.service';
 import { PokemonsRepository } from './repositories/pokemons.repository';
 import { PokemonsController } from './contorles/pokemons.controller';
-import { PokemonSchema } from './schemas/pokemonSchema';
-import { UserSchema } from './schemas/userSchema';
+import { Pokemon, PokemonSchema } from './schemas/pokemonSchema';
+import { User, UserSchema } from './schemas/userSchema';
+
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: 'Pokemon', schema: PokemonSchema, collection: 'pokemons' }, 
-      { name: 'User', schema: UserSchema, collection: 'users' },
+      { name: Pokemon.name, schema: PokemonSchema, collection: 'pokemons' },
+      { name: User.name, schema: UserSchema, collection: 'users' }, 
     ]),
   ],
-  providers: [PokemonsService, PokemonsRepository],
+  providers: [
+    PokemonsService,
+    PokemonsRepository,],
   controllers: [PokemonsController],
   exports: [PokemonsService, PokemonsRepository],
 })

@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString, Min, Validate } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SORT_BY_OPTIONS, SORT_BY_VALIDATION_MESSAGE } from '../pokemonConsts';
 
