@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PokemonsRepository } from '../repositories/pokemons.repository';
+import { SortKey, SortOrder } from '../pokemonConsts';
 
 @Injectable()
 export class PokemonsService {
@@ -11,12 +12,12 @@ export class PokemonsService {
     sortBy?: string,
     search?: string,
     fromMy?: boolean,
-    userId?: number, 
+    userId?: string, 
   ) {
-    let sort: { key: string; order: 'asc' | 'desc' } | undefined;
+    let sort: { key: SortKey; order: SortOrder } | undefined;
 
     if (sortBy) {
-      const [key, order] = sortBy.split('-') as [string, 'asc' | 'desc'];
+      const [key, order] = sortBy.split('-') as [SortKey, SortOrder]; 
       sort = { key, order };
     }
 
@@ -31,7 +32,7 @@ export class PokemonsService {
   }
 
   async getRandomPokemon() {
-    const randomId = Math.floor(Math.random() * 898) + 1; // Generate a random ID
-    return this.pokemonsRepository.findPokemonById(randomId); // Fetch the Pokémon by ID
+    const randomId = Math.floor(Math.random() * 898) + 1; 
+    return this.pokemonsRepository.findPokemonById(randomId); 
   }
 }

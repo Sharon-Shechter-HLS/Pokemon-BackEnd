@@ -9,8 +9,8 @@ import { UserSchema } from './schemas/userSchema';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: 'Pokemon', schema: PokemonSchema, collection: 'Pokemons' },
-      { name: 'User', schema: UserSchema, collection: 'Users' },
+      { name: 'Pokemon', schema: PokemonSchema, collection: 'pokemons' }, 
+      { name: 'User', schema: UserSchema, collection: 'users' },
     ]),
   ],
   providers: [PokemonsService, PokemonsRepository],

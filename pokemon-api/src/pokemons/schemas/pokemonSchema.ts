@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { PokemonName, PokemonBaseStats, PokemonImage } from '../types/pokemon.types';
 
 export type PokemonDocument = Pokemon & Document;
 
@@ -16,12 +17,7 @@ export class Pokemon {
       french: String,
     },
   })
-  name: {
-    english: string;
-    japanese: string;
-    chinese: string;
-    french: string;
-  };
+  name: PokemonName;
 
   @Prop([String])
   type: string[];
@@ -36,14 +32,7 @@ export class Pokemon {
       Speed: Number,
     },
   })
-  base: {
-    HP: number;
-    Attack: number;
-    Defense: number;
-    'Sp. Attack': number;
-    'Sp. Defense': number;
-    Speed: number;
-  };
+  base: PokemonBaseStats;
 
   @Prop()
   species: string;
@@ -58,11 +47,7 @@ export class Pokemon {
       hires: String,
     },
   })
-  image: {
-    sprite: string;
-    thumbnail: string;
-    hires: string;
-  };
+  image: PokemonImage;
 }
 
 export const PokemonSchema = SchemaFactory.createForClass(Pokemon);
