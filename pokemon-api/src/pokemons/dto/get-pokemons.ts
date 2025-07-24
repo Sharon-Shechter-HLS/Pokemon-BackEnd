@@ -1,17 +1,15 @@
-import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString, Min, Validate } from 'class-validator';
 import { Type } from 'class-transformer';
 import { SORT_BY_OPTIONS, SORT_BY_VALIDATION_MESSAGE } from '../pokemonConsts';
 
 export class GetPokemonsDto {
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
   @Min(1)
   page?: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
   @Min(1)
   rowsPerPage?: number;
 
@@ -31,7 +29,6 @@ export class GetPokemonsDto {
   fromMy?: boolean;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  userId?: number;
+  @IsString()
+  userId?: string;
 }
