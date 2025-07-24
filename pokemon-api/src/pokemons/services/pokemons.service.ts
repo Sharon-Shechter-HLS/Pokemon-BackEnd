@@ -62,4 +62,17 @@ export class PokemonsService {
       throw new BadRequestException(ERROR_FAILED_TO_FETCH_RANDOM_POKEMON);
     }
   }
+
+  async getPokemonById(_id: string) {
+    try {
+      const pokemon = await this.pokemonsRepository.findPokemonById(_id);
+      if (!pokemon) {
+        throw new NotFoundException(`Pokemon with ID ${_id} not found`);
+      }
+      return pokemon;
+    } catch (error) {
+      console.error('Error fetching pokemon by ID:', error.message);
+      throw new BadRequestException(`${ERROR_FAILED_TO_FETCH_POKEMONS} ${_id}`);
+    }
+  }
 }
