@@ -4,7 +4,7 @@ import { Turn, Winner } from '../arenaConsts';
 
 export type battleDocument = battle & Document & { _id: Types.ObjectId };
 
-@Schema({ collection: 'battle', timestamps: true , versionKey: false }) 
+@Schema({ collection: 'battle', timestamps: true, versionKey: false })
 export class battle {
   @Prop({ type: Types.ObjectId, ref: 'Pokemon', required: true })
   user: Types.ObjectId;
@@ -29,6 +29,9 @@ export class battle {
 
   @Prop({ default: false })
   canCatch: boolean;
+
+  @Prop({ default: false }) 
+  isCatched: boolean;
 }
 
 export const battlechema = SchemaFactory.createForClass(battle);
