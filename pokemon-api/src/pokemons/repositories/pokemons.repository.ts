@@ -55,6 +55,6 @@ async findRandomPokemon(): Promise<Pokemon | null> {
 }
 
 async findPokemonById(_id: string): Promise<Pokemon | null> {
-  return this.pokemonModel.findById(_id).lean().exec(); 
+  return this.pokemonModel.findById(new Types.ObjectId(_id)).lean().exec(); 
 }
 }
