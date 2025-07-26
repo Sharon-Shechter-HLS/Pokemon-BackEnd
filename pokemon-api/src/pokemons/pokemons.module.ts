@@ -11,12 +11,10 @@ import { User, UserSchema } from './schemas/userSchema';
   imports: [
     MongooseModule.forFeature([
       { name: Pokemon.name, schema: PokemonSchema, collection: 'pokemons' },
-      { name: User.name, schema: UserSchema, collection: 'users' }, 
+      { name: User.name, schema: UserSchema, collection: 'users' },
     ]),
   ],
-  providers: [
-    PokemonsService,
-    PokemonsRepository,],
+  providers: [PokemonsService, PokemonsRepository],
   controllers: [PokemonsController],
   exports: [PokemonsService, PokemonsRepository],
 })

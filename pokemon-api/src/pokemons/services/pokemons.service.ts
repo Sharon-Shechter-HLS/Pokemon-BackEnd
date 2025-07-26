@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PokemonsRepository } from '../repositories/pokemons.repository';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User } from '../schemas/userSchema';
+import { Model, Types } from 'mongoose';
+import { User, UserDocument } from '../schemas/userSchema';
 import { SortKey, SortOrder, ERROR_USER_ID_REQUIRED, ERROR_FAILED_TO_FETCH_POKEMONS, ERROR_FAILED_TO_FETCH_RANDOM_POKEMON, SORT_BY_MAPPING, SORT_BY_VALIDATION_MESSAGE } from '../pokemonConsts';
 
 @Injectable()
@@ -74,5 +74,17 @@ export class PokemonsService {
       console.error('Error fetching pokemon by ID:', error.message);
       throw new BadRequestException(`${ERROR_FAILED_TO_FETCH_POKEMONS} ${_id}`);
     }
+  }
+
+  async updateUserGames(userId: string, battleId: Types.ObjectId): Promise<void> {
+    await this.userModel.findByIdAndUpdate(
+      userId,
+      { $push: { userBattles: battleId } },
+      { new: true }
+    ).exec();
+  }
+
+  async getUserById(userId: string): Promise<UserDocument | null> {
+    return this.userModel.findById(userId).exec();
   }
 }

@@ -1,11 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose'; // Import Types for ObjectId
 import { PokemonName, PokemonBaseStats, PokemonImage } from '../types/pokemon.types';
 
 export type PokemonDocument = Pokemon & Document;
 
 @Schema()
 export class Pokemon {
+  @Prop({ type: Types.ObjectId }) 
+  _id: Types.ObjectId;
+
   @Prop({ required: true })
   id: number;
 
