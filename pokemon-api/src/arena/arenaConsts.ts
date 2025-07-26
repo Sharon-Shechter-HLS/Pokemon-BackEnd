@@ -24,6 +24,14 @@ export enum Turn {
   OPPONENT = 'opponent',
 }
 
+//atack Logic.ts
+export const BASE_DAMAGE_MULTIPLIER = 0.25;
+export const RANDOM_DAMAGE_MULTIPLIER = 0.05;
+export const MIN_DAMAGE = 1;
+export const DAMAGE_CHANCE_THRESHOLD = 0.2;
+export const DAMAGE_CALCULATION_DELAY = 200; 
+
+
 export enum Winner {
   User = 'User',
   Opponent = 'Opponent',
