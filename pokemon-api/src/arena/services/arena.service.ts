@@ -1,8 +1,9 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PokemonsService } from '../../pokemons/services/pokemons.service';
 import { ArrenaRepository } from '../repositories/arena.repository';
-import { Turn, Winner, USER_NOT_FOUND, USER_POKEMON_NOT_FOUND, OPPONENT_POKEMON_NOT_FOUND, FAILED_TO_START_GAME } from '../arenaConsts';
-import { battle } from '../schemas/battleSchema';
+import { canCatch, attemptCatch } from '../battleUtils/catchLogic';
+import { Types } from 'mongoose';
+import { Turn, Winner, USER_NOT_FOUND, USER_POKEMON_NOT_FOUND, OPPONENT_POKEMON_NOT_FOUND, FAILED_TO_START_GAME, GAME_NOT_FOUND } from '../arenaConsts';
 
 @Injectable()
 export class ArrenaService {
@@ -53,4 +54,41 @@ export class ArrenaService {
       );
     }
   }
+
+  async catchPokemon(gameId: string): Promise<any> {
+  try {
+    const game = await this.arrenaRepository.getBattleWithDetails(new Types.ObjectId(gameId));
+    if (!game) {
+      throw new Error(GAME_NOT_FOUND);
+    }
+
+    if (!canCatch(game.catchAttempts)) {
+      game.canCatch = false;
+      await this.arrenaRepository.updateGame(game._id, game);
+      const updatedGame = await this.arrenaRepository.getBattleWithDetails(game._id);
+      return updatedGame;
+    }
+
+    const { success, updatedAttempts } = attemptCatch(
+      game.catchAttempts,
+      game.opponentCurrentLife,
+      game.opponent.base.HP
+    );
+
+    const updatedGameData = {
+      catchAttempts: updatedAttempts,
+      canCatch: canCatch(updatedAttempts),
+      turn: Turn.OPPONENT,
+      isCatched: success,
+    };
+
+    await this.arrenaRepository.updateGame(game._id, updatedGameData);
+
+    const updatedGame = await this.arrenaRepository.getBattleWithDetails(game._id);
+    return updatedGame;
+  } catch (error) {
+    throw error; 
+  }
 }
+}
+

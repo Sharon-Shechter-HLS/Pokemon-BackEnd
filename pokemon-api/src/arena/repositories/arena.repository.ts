@@ -20,4 +20,8 @@ export class ArrenaRepository {
       .lean()
       .exec();
   }
+
+  async updateGame(gameId: Types.ObjectId, updatedData: Partial<battle>): Promise<void> {
+    await this.battleModel.findByIdAndUpdate(gameId, updatedData, { new: true }).exec();
+  }
 }
