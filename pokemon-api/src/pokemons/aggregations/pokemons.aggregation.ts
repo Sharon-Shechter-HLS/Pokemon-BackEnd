@@ -1,69 +1,46 @@
-import { PipelineStage } from 'mongoose';
+import { PipelineStage, Types } from 'mongoose';
 
-export const getAllPokemonsAggregation = (
+export const getPokemonsAggregation = (
   skip: number,
   limit: number,
   search?: string,
   sort?: { key: string; order: 'asc' | 'desc' },
+  fromMy?: boolean, 
+  userId?: string, 
 ): PipelineStage[] => {
   const pipeline: PipelineStage[] = [];
 
-  if (search) {
+  if (fromMy && userId) {
     pipeline.push({
-      $match: { 'name.english': { $regex: search, $options: 'i' } },
+      $match: { _id: new Types.ObjectId(userId) }, 
     });
-  }
-
-  if (sort) {
     pipeline.push({
-      $sort: { [sort.key]: sort.order === 'asc' ? 1 : -1 },
-    });
-  }
-  pipeline.push({
-    $facet: {
-      data: [
-        { $skip: skip },
-        { $limit: limit }
-      ],
-      total: [
-        { $count: 'total' }
-      ]
-    }
-  });
- 
-
-  return pipeline;
-};
-
-export const getUserPokemonsAggregation = (
-  userId: number,
-  skip: number,
-  limit: number,
-  search?: string,
-  sort?: { key: string; order: 'asc' | 'desc' },
-): PipelineStage[] => {
-  const pipeline: PipelineStage[] = [
-    { $match: { userId } },
-    {
       $lookup: {
-        from: 'Pokemons',
+        from: 'pokemons', 
         localField: 'userPokemonsCollection',
-        foreignField: 'id',
+        foreignField: '_id', 
         as: 'userPokemons',
       },
-    },
-    { $unwind: '$userPokemons' },
-  ];
+    });
+    pipeline.push({ $unwind: '$userPokemons' }); 
+  }
 
   if (search) {
     pipeline.push({
-      $match: { 'userPokemons.name.english': { $regex: search, $options: 'i' } },
+      $match: {
+        [fromMy ? 'userPokemons.name.english' : 'name.english']: {
+          $regex: search,
+          $options: 'i',
+        },
+      },
     });
   }
 
   if (sort) {
     pipeline.push({
-      $sort: { [`userPokemons.${sort.key}`]: sort.order === 'asc' ? 1 : -1 },
+      $sort: {
+        [fromMy ? `userPokemons.${sort.key}` : sort.key]: sort.order === 'asc' ? 1 : -1,
+      },
     });
   }
 
@@ -72,13 +49,17 @@ export const getUserPokemonsAggregation = (
       data: [
         { $skip: skip },
         { $limit: limit },
-        { $replaceRoot: { newRoot: '$userPokemons' } }
+        ...(fromMy ? [{ $replaceRoot: { newRoot: '$userPokemons' } }] : []),
       ],
-      total: [
-        { $count: 'count' }
-      ]
-    }
+      total: [{ $count: 'total' }],
+    },
   });
 
   return pipeline;
+};
+
+export const getRandomPokemonAggregation = (): PipelineStage[] => {
+  return [
+    { $sample: { size: 1 } }, 
+  ];
 };
