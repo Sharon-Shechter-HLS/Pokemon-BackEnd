@@ -1,13 +1,13 @@
 import { Body, Controller, Post, UsePipes, ValidationPipe, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { StartGameDto } from '../dto/start-game.dto';
-import { CatchGameDto } from '../dto/catch-game.dto';
+import { GameActionDto } from '../dto/game-action.dto';
 import { ArrenaService } from '../services/arena.service';
 import { battle } from '../schemas/battleSchema';
 
 @Controller('arena')
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 export class ArrenaController {
-  private readonly logger = new Logger(ArrenaController.name); 
+  private readonly logger = new Logger(ArrenaController.name);
 
   constructor(private readonly arrenaService: ArrenaService) {}
 
@@ -29,9 +29,9 @@ export class ArrenaController {
   }
 
   @Post('catch')
-  async catchPokemon(@Body() catchGameDto: CatchGameDto): Promise<any> {
+  async catchPokemon(@Body() gameActionDto: GameActionDto): Promise<any> {
     try {
-      const { gameId } = catchGameDto;
+      const { gameId } = gameActionDto;
       this.logger.log(`Attempting to catch Pokémon for gameId: ${gameId}`);
       const result = await this.arrenaService.catchPokemon(gameId);
       this.logger.log(`Catch attempt result: ${JSON.stringify(result)}`);
@@ -44,4 +44,21 @@ export class ArrenaController {
       );
     }
   }
+
+  @Post('attack')
+  async attackPokemon(@Body() gameActionDto: GameActionDto): Promise<any> {
+    try {
+      const { gameId } = gameActionDto;
+      this.logger.log(`Attempting attack for gameId: ${gameId}`);
+      const result = await this.arrenaService.attackPokemon(gameId);
+      this.logger.log(`Attack result: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Error during attack: ${error.message}`, error.stack);
+      throw new HttpException(
+        `Failed to perform attack: ${error.message}`,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  } 
 }

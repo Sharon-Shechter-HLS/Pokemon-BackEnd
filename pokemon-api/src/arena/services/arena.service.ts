@@ -3,6 +3,8 @@ import { PokemonsService } from '../../pokemons/services/pokemons.service';
 import { ArrenaRepository } from '../repositories/arena.repository';
 import { canCatch, attemptCatch } from '../battleUtils/catchLogic';
 import { Types } from 'mongoose';
+import { calculateNewLife } from '../battleUtils/attackLogic';
+
 import { Turn, Winner, USER_NOT_FOUND, USER_POKEMON_NOT_FOUND, OPPONENT_POKEMON_NOT_FOUND, FAILED_TO_START_GAME, GAME_NOT_FOUND } from '../arenaConsts';
 
 @Injectable()
@@ -86,6 +88,52 @@ export class ArrenaService {
 
     const updatedGame = await this.arrenaRepository.getBattleWithDetails(game._id);
     return updatedGame;
+  } catch (error) {
+    throw error; 
+  }
+}
+
+async attackPokemon(gameId: string): Promise<any> {
+  try {
+    const game = await this.arrenaRepository.getBattleWithDetails(new Types.ObjectId(gameId));
+    if (!game) {
+      throw new Error(GAME_NOT_FOUND);
+    }
+
+    if (game.turn === Turn.USER) {
+      game.opponentCurrentLife = calculateNewLife(
+        game.user.base.Attack,
+        game.opponentCurrentLife,
+        game.opponent.base.HP
+      );
+
+      if (game.opponentCurrentLife === 0) {
+        game.winner = Winner.User;
+        game.turn = null; 
+        await this.arrenaRepository.updateGame(game._id, game);
+        return await this.arrenaRepository.getBattleWithDetails(game._id);
+      }
+
+      game.turn = Turn.OPPONENT;
+    } else if (game.turn === Turn.OPPONENT) {
+      game.userCurrentLife = calculateNewLife(
+        game.opponent.base.Attack,
+        game.userCurrentLife,
+        game.user.base.HP
+      );
+
+      if (game.userCurrentLife === 0) {
+        game.winner = Winner.Opponent;
+        game.turn = null; 
+        await this.arrenaRepository.updateGame(game._id, game);
+        return await this.arrenaRepository.getBattleWithDetails(game._id);
+      }
+
+      game.turn = Turn.USER;
+    }
+
+    await this.arrenaRepository.updateGame(game._id, game);
+    return await this.arrenaRepository.getBattleWithDetails(game._id);
   } catch (error) {
     throw error; 
   }
