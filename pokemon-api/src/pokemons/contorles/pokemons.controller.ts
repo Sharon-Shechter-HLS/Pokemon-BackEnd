@@ -12,21 +12,21 @@ export class PokemonsController {
   @Get()
   async getPokemons(@Query() query: GetPokemonsDto) {
     try {
-      this.logger.log('Fetching pokemons with query:', JSON.stringify(query)); 
+      this.logger.log('Fetching pokemons with query:', JSON.stringify(query));
       return await this.pokemonsService.getPokemons(
         query.page || DEFAULT_PAGE,
         query.rowsPerPage || DEFAULT_ROWS_PER_PAGE,
+        query.userId,
         query.sortBy,
         query.search,
         query.fromMy,
-        query.userId,
       );
     } catch (error) {
       if (error instanceof HttpException) {
-        this.logger.warn(`Known error occurred: ${error.message}`); 
+        this.logger.warn(`Known error occurred: ${error.message}`);
         throw error;
       }
-      this.logger.error('Unexpected error in getPokemons:', error.message); 
+      this.logger.error('Unexpected error in getPokemons:', error.message);
       throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

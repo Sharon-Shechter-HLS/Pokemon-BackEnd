@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsOptional, IsString, Min, Validate } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { SORT_BY_OPTIONS, SORT_BY_VALIDATION_MESSAGE } from '../pokemonConsts';
 
 export class GetPokemonsDto {
@@ -24,11 +24,10 @@ export class GetPokemonsDto {
   search?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(({ value }) => value === 'true' || value === true ? true : false)
   @IsBoolean()
-  fromMy?: boolean;
+  fromMy: boolean = false;
 
-  @IsOptional()
-  @IsString()
-  userId?: string;
+  @IsString({ message: 'userId is required and must be a string' }) 
+  userId: string = '';
 }

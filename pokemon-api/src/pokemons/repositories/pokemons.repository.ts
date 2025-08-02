@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Pokemon } from '../schemas/pokemonSchema';
 import { POKEMON_MODEL_NAME, SortKey, SortOrder } from '../pokemonConsts'; 
 import { getPokemonsAggregation , getRandomPokemonAggregation } from '../aggregations/pokemons.aggregation';
-import { User } from '../schemas/userSchema';
+import { User } from '../../users/schemas/userSchema';
 import { FindPokemonsResult } from '../types/findPokemonResponse';
 
 @Injectable()
@@ -24,26 +24,66 @@ export class PokemonsRepository {
   }: {
     page: number;
     rowsPerPage: number;
-    sort?: { key: SortKey; order: SortOrder }; 
+    sort?: { key: SortKey; order: SortOrder };
     search?: string;
-    fromMy?: boolean; 
-    userId?: string;
+    fromMy?: boolean;
+    userId: string;
   }): Promise<FindPokemonsResult> {
     const skip = (page - 1) * rowsPerPage;
-    const limit = page == 1 ? rowsPerPage : rowsPerPage + 1;
+    const limit = rowsPerPage;
 
-    const pipeline = getPokemonsAggregation(skip, limit, search, sort, fromMy, userId);
+    if (fromMy) {
+      // Fetch user's Pokémon collection directly
+      const user = await this.userModel.findById(userId).select('userPokemonsCollection').lean().exec();
+      if (!user || !user.userPokemonsCollection) {
+        return { data: [], meta: { start: 0, end: 0, total: 0 } };
+      }
 
-    const model = fromMy && userId ? this.userModel : this.pokemonModel; 
-    const [{ data = [], total = 0 } = {}] = await model.aggregate(pipeline).exec();
+      const total = user.userPokemonsCollection.length;
+      const paginatedPokemonIds = user.userPokemonsCollection.slice(skip, skip + limit);
 
-    const start = skip + 1;
-    const end = skip + data.length;
+      const searchFilter = search ? { 'name.english': { $regex: search, $options: 'i' } } : {};
+      const data = await this.pokemonModel
+        .find({ _id: { $in: paginatedPokemonIds }, ...searchFilter })
+        .sort(sort ? { [sort.key]: sort.order === SortOrder.Asc ? 1 : -1 } : {})
+        .lean()
+        .exec();
 
-    return {
-      data,
-      meta: { start, end, total },
-    };
+      const enrichedData = data.map((pokemon) => ({
+        ...pokemon,
+        isMyPokemon: true, // All Pokémon belong to the user
+      }));
+
+      const start = skip + 1;
+      const end = skip + enrichedData.length;
+
+      return {
+        data: enrichedData,
+        meta: { start, end, total: enrichedData.length }, // Update total to reflect filtered results
+      };
+    } else {
+      // Perform aggregation for general Pokémon query
+      const pipeline = getPokemonsAggregation(skip, limit, search, sort, fromMy, userId);
+
+      const [{ data = [], total = 0 } = {}] = await this.pokemonModel.aggregate(pipeline).exec();
+
+      // Fetch user's Pokémon collection for `isMyPokemon` flag
+      const user = await this.userModel.findById(userId).select('userPokemonsCollection').lean().exec();
+      const userPokemonIds = user?.userPokemonsCollection?.map((id) => id.toString()) || [];
+
+      const enrichedData = data.map((pokemon) => ({
+        ...pokemon,
+        isMyPokemon: userPokemonIds.includes(pokemon._id.toString()),
+      }));
+
+      const start = skip + 1;
+      const end = skip + enrichedData.length;
+
+      return {
+        data: enrichedData,
+        meta: { start, end, total },
+      };
+    }
   }
 
 
