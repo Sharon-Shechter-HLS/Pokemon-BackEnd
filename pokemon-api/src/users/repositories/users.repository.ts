@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types, Schema } from 'mongoose';
+import { Model, Schema } from 'mongoose';
 import { UserDocument } from '../schemas/userSchema';
+import { USER_POKEMONS_COLLECTION_FIELD } from '../../pokemons/pokemonConsts';
 
 @Injectable()
 export class UsersRepository {
@@ -23,5 +24,10 @@ export class UsersRepository {
       (id) => id.toString() !== pokemonObjectId.toString()
     );
     return user.save();
+  }
+
+  async getUserPokemonCollection(userId: string): Promise<string[]> {
+    const user = await this.userModel.findById(userId).select(USER_POKEMONS_COLLECTION_FIELD).lean().exec();
+    return user?.[USER_POKEMONS_COLLECTION_FIELD]?.map((id) => id.toString()) || [];
   }
 }

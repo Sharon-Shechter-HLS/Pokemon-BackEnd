@@ -1,7 +1,15 @@
 export const DEFAULT_PAGE = 1;
 export const DEFAULT_ROWS_PER_PAGE = 10;
 export const POKEMON_MODEL_NAME = 'Pokemon';
+export const USER_MODEL_NAME = 'User';
 export const DEFAULT_SEARCH_TEXT = '';
+
+// Field names
+export const USER_POKEMONS_COLLECTION_FIELD = 'userPokemonsCollection';
+export const NAME_ENGLISH_FIELD = 'name.english';
+
+// Regex options
+export const REGEX_OPTIONS = 'i';
 
 export const SORT_BY_OPTIONS = [
   'name.english-asc',
@@ -19,7 +27,9 @@ export const SORT_BY_VALIDATION_MESSAGE =
 export const ERROR_USER_ID_REQUIRED = 'User ID must be provided when "fromMy" is true.';
 export const ERROR_FAILED_TO_FETCH_POKEMONS = 'Failed to fetch pokemons. Please check your request.';
 export const ERROR_FAILED_TO_FETCH_RANDOM_POKEMON = 'Failed to fetch a random pokemon.';
-export const ERROR_POKEMON_NOT_FOUND = (id: number) => `Pokemon with ID ${id} not found.`;
+export const ERROR_POKEMON_NOT_FOUND = (id: number) => `Pokemon with ID ${id} not found`;
+export const NO_USER_FOUND_ERROR = 'User not found';
+export const EMPTY_COLLECTION_ERROR = 'User has no Pokémon in their collection';
 
 export enum SortKey {
   HP = 'base.HP',

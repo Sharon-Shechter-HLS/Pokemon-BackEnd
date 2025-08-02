@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { Model, Types  } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Pokemon } from '../schemas/pokemonSchema';
-import { POKEMON_MODEL_NAME, SortKey, SortOrder } from '../pokemonConsts'; 
-import { getPokemonsAggregation , getRandomPokemonAggregation } from '../aggregations/pokemons.aggregation';
-import { User } from '../../users/schemas/userSchema';
+import { USER_POKEMONS_COLLECTION_FIELD, NAME_ENGLISH_FIELD, REGEX_OPTIONS } from '../pokemonConsts';
+import { getPokemonsAggregation, getRandomPokemonAggregation } from '../aggregations/pokemons.aggregation';
 import { FindPokemonsResult } from '../types/findPokemonResponse';
+import { Sort } from '../types/pokemon.types';
+import { UsersService } from '../../users/services/users.service';
 
 @Injectable()
 export class PokemonsRepository {
   constructor(
-    @InjectModel(POKEMON_MODEL_NAME) private readonly pokemonModel: Model<Pokemon>,
-    @InjectModel('User') private readonly userModel: Model<User>,
+    @InjectModel('Pokemon') private readonly pokemonModel: Model<Pokemon>,
+    private readonly usersService: UsersService,
   ) {}
 
   async findPokemons({
@@ -24,7 +25,7 @@ export class PokemonsRepository {
   }: {
     page: number;
     rowsPerPage: number;
-    sort?: { key: SortKey; order: SortOrder };
+    sort?: Sort;
     search?: string;
     fromMy?: boolean;
     userId: string;
@@ -33,68 +34,83 @@ export class PokemonsRepository {
     const limit = rowsPerPage;
 
     if (fromMy) {
-      // Fetch user's Pokémon collection directly
-      const user = await this.userModel.findById(userId).select('userPokemonsCollection').lean().exec();
-      if (!user || !user.userPokemonsCollection) {
-        return { data: [], meta: { start: 0, end: 0, total: 0 } };
-      }
-
-      const total = user.userPokemonsCollection.length;
-      const paginatedPokemonIds = user.userPokemonsCollection.slice(skip, skip + limit);
-
-      const searchFilter = search ? { 'name.english': { $regex: search, $options: 'i' } } : {};
-      const data = await this.pokemonModel
-        .find({ _id: { $in: paginatedPokemonIds }, ...searchFilter })
-        .sort(sort ? { [sort.key]: sort.order === SortOrder.Asc ? 1 : -1 } : {})
-        .lean()
-        .exec();
-
-      const enrichedData = data.map((pokemon) => ({
-        ...pokemon,
-        isMyPokemon: true, // All Pokémon belong to the user
-      }));
-
-      const start = skip + 1;
-      const end = skip + enrichedData.length;
-
-      return {
-        data: enrichedData,
-        meta: { start, end, total: enrichedData.length }, // Update total to reflect filtered results
-      };
+      return this.findUserPokemons(userId, skip, limit, search, sort); 
     } else {
-      // Perform aggregation for general Pokémon query
-      const pipeline = getPokemonsAggregation(skip, limit, search, sort, fromMy, userId);
-
-      const [{ data = [], total = 0 } = {}] = await this.pokemonModel.aggregate(pipeline).exec();
-
-      // Fetch user's Pokémon collection for `isMyPokemon` flag
-      const user = await this.userModel.findById(userId).select('userPokemonsCollection').lean().exec();
-      const userPokemonIds = user?.userPokemonsCollection?.map((id) => id.toString()) || [];
-
-      const enrichedData = data.map((pokemon) => ({
-        ...pokemon,
-        isMyPokemon: userPokemonIds.includes(pokemon._id.toString()),
-      }));
-
-      const start = skip + 1;
-      const end = skip + enrichedData.length;
-
-      return {
-        data: enrichedData,
-        meta: { start, end, total },
-      };
+      return this.findAllPokemons(userId, skip, limit, search, sort); 
     }
   }
 
+  private async findUserPokemons(
+    userId: string,
+    skip: number,
+    limit: number,
+    search?: string,
+    sort?: Sort,
+  ): Promise<FindPokemonsResult> {
+    const userPokemonIds = await this.usersService.getUserPokemonCollection(userId);
+    if (userPokemonIds.length === 0) {
+      return { data: [], meta: { start: 0, end: 0, total: 0 } };
+    }
 
-async findRandomPokemon(): Promise<Pokemon | null> {
-  const pipeline = getRandomPokemonAggregation(); 
-  const [pokemon] = await this.pokemonModel.aggregate(pipeline).exec();
+    const total = userPokemonIds.length;
+    const paginatedPokemonIds = userPokemonIds.slice(skip, skip + limit);
 
-  return pokemon || null; 
-}
+    const searchFilter = search ? { [NAME_ENGLISH_FIELD]: { $regex: search, $options: REGEX_OPTIONS } } : {};
+    const data = await this.pokemonModel
+      .find({ _id: { $in: paginatedPokemonIds }, ...searchFilter })
+      .sort(sort ? { [sort.key]: sort.order === 'asc' ? 1 : -1 } : {})
+      .lean()
+      .exec();
 
-async findPokemonById(_id: string): Promise<Pokemon | null> {
-  return this.pokemonModel.findById(new Types.ObjectId(_id)).lean().exec(); 
-}
+    const enrichedData = data.map((pokemon) => ({
+      ...pokemon,
+      isMyPokemon: true,
+    }));
+
+    const start = skip + 1;
+    const end = skip + enrichedData.length;
+
+    return {
+      data: enrichedData,
+      meta: { start, end, total },
+    };
+  }
+
+  private async findAllPokemons(
+    userId: string,
+    skip: number,
+    limit: number,
+    search?: string,
+    sort?: Sort,
+  ): Promise<FindPokemonsResult> {
+    const pipeline = getPokemonsAggregation(skip, limit, search, sort, false, userId);
+
+    const [{ data = [], total = 0 } = {}] = await this.pokemonModel.aggregate(pipeline).exec();
+
+    const userPokemonIds = userId ? await this.usersService.getUserPokemonCollection(userId) : [];
+
+    const enrichedData = data.map((pokemon) => ({
+      ...pokemon,
+      isMyPokemon: userPokemonIds.includes(pokemon._id.toString()),
+    }));
+
+    const start = skip + 1;
+    const end = skip + enrichedData.length;
+
+    return {
+      data: enrichedData,
+      meta: { start, end, total },
+    };
+  }
+
+  async findRandomPokemon(): Promise<Pokemon | null> {
+    const pipeline = getRandomPokemonAggregation();
+    const [pokemon] = await this.pokemonModel.aggregate(pipeline).exec();
+
+    return pokemon || null;
+  }
+
+  async findPokemonById(_id: string): Promise<Pokemon | null> {
+    return this.pokemonModel.findById(new Types.ObjectId(_id)).lean().exec();
+  }
 }

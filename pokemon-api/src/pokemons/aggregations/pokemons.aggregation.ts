@@ -1,10 +1,11 @@
 import { PipelineStage, Types } from 'mongoose';
+import { Sort } from '../types/pokemon.types';
 
 export const getPokemonsAggregation = (
   skip: number,
   limit: number,
   search?: string,
-  sort?: { key: string; order: 'asc' | 'desc' },
+  sort?: Sort, 
   fromMy?: boolean, 
   userId?: string, 
 ): PipelineStage[] => {
