@@ -31,7 +31,7 @@ export class PokemonsRepository {
     userId: string;
   }): Promise<FindPokemonsResult> {
     const skip = (page - 1) * rowsPerPage;
-    const limit = rowsPerPage;
+    const limit = page == 1 ? rowsPerPage : rowsPerPage + 1;
 
     if (fromMy) {
       return this.findUserPokemons(userId, skip, limit, search, sort); 
@@ -53,7 +53,8 @@ export class PokemonsRepository {
     }
 
     const total = userPokemonIds.length;
-    const paginatedPokemonIds = userPokemonIds.slice(skip, skip + limit);
+    const paginatedPokemonIds = userPokemonIds.slice(skip, skip + limit).map((id) => new Types.ObjectId(id));
+  
 
     const searchFilter = search ? { [NAME_ENGLISH_FIELD]: { $regex: search, $options: REGEX_OPTIONS } } : {};
     const data = await this.pokemonModel

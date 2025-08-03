@@ -37,9 +37,9 @@ export class ArrenaService {
         turn: Turn.USER,
         userCurrentLife: userPokemon.base.HP,
         opponentCurrentLife: opponentPokemon.base.HP,
-        winner: Winner.None,
+        winner: undefined,
         catchAttempts: 0,
-        canCatch: false,
+        canCatch: true,
       };
 
       const savedBattle = await this.arrenaRepository.createGame(battleData);

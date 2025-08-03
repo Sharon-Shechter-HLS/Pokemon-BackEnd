@@ -35,7 +35,6 @@ export const DAMAGE_CALCULATION_DELAY = 200;
 export enum Winner {
   User = 'User',
   Opponent = 'Opponent',
-  None = 'None',
 
 }
 

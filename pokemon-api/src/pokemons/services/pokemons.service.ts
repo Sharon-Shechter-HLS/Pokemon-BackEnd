@@ -25,6 +25,7 @@ export class PokemonsService {
         throw new BadRequestException('User ID is required');
       }
 
+      
       let sort: { key: SortKey; order: SortOrder } | undefined;
       if (sortBy) {
         const sortMapping = SORT_BY_MAPPING[sortBy];
@@ -40,10 +41,9 @@ export class PokemonsService {
         sort,
         search,
         fromMy,
-        userId, // Pass userId to the repository
+        userId, 
       });
     } catch (error) {
-      console.error('Error fetching pokemons:', error.message);
       throw new BadRequestException('Failed to fetch pokemons');
     }
   }

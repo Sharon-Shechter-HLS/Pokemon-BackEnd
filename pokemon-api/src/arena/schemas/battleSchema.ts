@@ -21,7 +21,7 @@ export class battle {
   @Prop({ required: true })
   userCurrentLife: number;
 
-  @Prop({ type: String, enum: Winner, default: Winner.None })
+  @Prop({ type: String, enum: Winner, default: undefined })
   winner: Winner;
 
   @Prop({ default: 0 })
