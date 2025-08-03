@@ -40,6 +40,7 @@ export class ArrenaService {
         winner: undefined,
         catchAttempts: 0,
         canCatch: true,
+        hasSwitch: false, 
       };
 
       const savedBattle = await this.arrenaRepository.createGame(battleData);
@@ -136,6 +137,26 @@ async attackPokemon(gameId: string): Promise<any> {
     return await this.arrenaRepository.getBattleWithDetails(game._id);
   } catch (error) {
     throw error; 
+  }
+}
+
+async switchPokemon(gameId: string): Promise<any> {
+  try {
+    const game = await this.arrenaRepository.getBattleWithDetails(new Types.ObjectId(gameId));
+    if (!game) {
+      throw new HttpException(GAME_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
+    if (game.hasSwitch) {
+      throw new HttpException('Pokémon has already been switched in this game.', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.arrenaRepository.switchPokemon(new Types.ObjectId(gameId));
+
+    const updatedGame = await this.arrenaRepository.getBattleWithDetails(new Types.ObjectId(gameId));
+    return updatedGame;
+  } catch (error) {
+    throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 }

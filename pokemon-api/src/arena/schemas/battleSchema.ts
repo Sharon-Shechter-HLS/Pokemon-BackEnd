@@ -32,6 +32,11 @@ export class battle {
 
   @Prop({ default: false }) 
   isCatched: boolean;
+
+  @Prop({ default: false }) 
+  hasSwitch: boolean;
+
 }
+
 
 export const battlechema = SchemaFactory.createForClass(battle);

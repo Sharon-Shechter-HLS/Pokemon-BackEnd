@@ -24,4 +24,8 @@ export class ArrenaRepository {
   async updateGame(gameId: Types.ObjectId, updatedData: Partial<battle>): Promise<void> {
     await this.battleModel.findByIdAndUpdate(gameId, updatedData, { new: true }).exec();
   }
+
+  async switchPokemon(gameId: Types.ObjectId): Promise<void> {
+  await this.battleModel.findByIdAndUpdate(gameId, { hasSwitch: true }, { new: true }).exec();
+}
 }

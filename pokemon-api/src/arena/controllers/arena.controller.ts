@@ -61,4 +61,20 @@ export class ArrenaController {
       );
     }
   } 
+  @Post('switchPokemon')
+async switchPokemon(@Body() gameActionDto: GameActionDto): Promise<any> {
+  try {
+    const { gameId } = gameActionDto;
+    this.logger.log(`Switching Pokémon for gameId: ${gameId}`);
+    const result = await this.arrenaService.switchPokemon(gameId);
+    this.logger.log(`Switch Pokémon result: ${JSON.stringify(result)}`);
+    return result;
+  } catch (error) {
+    this.logger.error(`Error during Pokémon switch: ${error.message}`, error.stack);
+    throw new HttpException(
+      `Failed to switch Pokémon: ${error.message}`,
+      error.status || HttpStatus.INTERNAL_SERVER_ERROR
+    );
+  }
+}
 }

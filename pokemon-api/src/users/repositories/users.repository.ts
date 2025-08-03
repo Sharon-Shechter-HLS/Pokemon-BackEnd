@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Schema } from 'mongoose';
+import { Model, Schema, Types } from 'mongoose';
 import { UserDocument } from '../schemas/userSchema';
 import { USER_POKEMONS_COLLECTION_FIELD } from '../../pokemons/pokemonConsts';
 
@@ -13,13 +13,13 @@ export class UsersRepository {
   }
 
   async addPokemonToUser(user: UserDocument, pokemonId: string): Promise<UserDocument> {
-    const pokemonObjectId = new Schema.Types.ObjectId(pokemonId); 
+    const pokemonObjectId = new Types.ObjectId(pokemonId); 
     user.userPokemonsCollection.push(pokemonObjectId);
     return user.save();
   }
 
   async removePokemonFromUser(user: UserDocument, pokemonId: string): Promise<UserDocument> {
-    const pokemonObjectId = new Schema.Types.ObjectId(pokemonId); 
+    const pokemonObjectId = new Types.ObjectId(pokemonId); 
     user.userPokemonsCollection = user.userPokemonsCollection.filter(
       (id) => id.toString() !== pokemonObjectId.toString()
     );
