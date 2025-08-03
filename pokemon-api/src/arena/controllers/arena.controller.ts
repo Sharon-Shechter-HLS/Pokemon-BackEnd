@@ -1,6 +1,7 @@
 import { Body, Controller, Post, UsePipes, ValidationPipe, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { StartGameDto } from '../dto/start-game.dto';
 import { GameActionDto } from '../dto/game-action.dto';
+import {switchPokemonDto} from '../dto/switch-pokemon-dto';
 import { ArrenaService } from '../services/arena.service';
 import { battle } from '../schemas/battleSchema';
 
@@ -62,11 +63,11 @@ export class ArrenaController {
     }
   } 
   @Post('switchPokemon')
-async switchPokemon(@Body() gameActionDto: GameActionDto): Promise<any> {
+async switchPokemon(@Body() switchPokemonDto: switchPokemonDto): Promise<any> {
   try {
-    const { gameId } = gameActionDto;
-    this.logger.log(`Switching Pokémon for gameId: ${gameId}`);
-    const result = await this.arrenaService.switchPokemon(gameId);
+    const { gameId, newPokemonId } = switchPokemonDto;
+    this.logger.log(`Switching Pokémon for gameId: ${gameId} to newPokemonId: ${newPokemonId}`);
+    const result = await this.arrenaService.switchPokemon(gameId, newPokemonId);
     this.logger.log(`Switch Pokémon result: ${JSON.stringify(result)}`);
     return result;
   } catch (error) {
