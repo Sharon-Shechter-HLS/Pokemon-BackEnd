@@ -49,7 +49,7 @@ export class PokemonsRepository {
   ): Promise<FindPokemonsResult> {
     const userPokemonIds = await this.usersService.getUserPokemonCollection(userId);
     if (userPokemonIds.length === 0) {
-      return { data: [], meta: { start: 0, end: 0, total: [{ total: 0 }] } }; 
+      return { data: [], meta: { start: 0, end: 0, total: { total: 0 } } }; 
     }
 
     const total = userPokemonIds.length;
@@ -72,7 +72,7 @@ export class PokemonsRepository {
 
     return {
       data: enrichedData,
-      meta: { start, end, total: [{ total }] }, 
+      meta: { start, end, total: { total } }, 
     };
   }
 
@@ -97,9 +97,15 @@ export class PokemonsRepository {
     const start = skip + 1;
     const end = skip + enrichedData.length;
 
+    const flattenedTotal = Array.isArray(total) && total.length > 0 && total[0].total ? total[0].total : total;
+
     return {
       data: enrichedData,
-      meta: { start, end, total: [{ total }] }, // Updated format
+      meta: { 
+        start, 
+        end, 
+        total: { total: flattenedTotal } 
+      },
     };
   }
 

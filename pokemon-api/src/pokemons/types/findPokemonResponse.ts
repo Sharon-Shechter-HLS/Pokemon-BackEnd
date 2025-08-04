@@ -5,6 +5,6 @@ export type FindPokemonsResult = {
   meta: {
     start: number;
     end: number;
-    total: { total: number }[]; 
+    total: { total: number }; 
   };
 }

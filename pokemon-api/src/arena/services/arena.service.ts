@@ -164,10 +164,10 @@ async getAnotherOpponent(gameId: string): Promise<any> {
       throw new HttpException('Failed to fetch a new opponent Pokémon.', HttpStatus.NOT_FOUND);
     }
 
-    // Update opponent and reset catch-related fields
     const updatedGameData = {
       opponent: new Types.ObjectId(newOpponent._id),
       opponentCurrentLife: newOpponent.base.HP,
+      turn: Turn.USER,
       isCatched: false, 
       catchAttempts: 0, 
     };
