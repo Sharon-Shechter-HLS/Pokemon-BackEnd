@@ -1,16 +1,18 @@
 import { PipelineStage, Types } from 'mongoose';
+import { Sort } from '../types/pokemon.types';
 
 export const getPokemonsAggregation = (
   skip: number,
   limit: number,
   search?: string,
-  sort?: { key: string; order: 'asc' | 'desc' },
+  sort?: Sort, 
   fromMy?: boolean, 
   userId?: string, 
 ): PipelineStage[] => {
   const pipeline: PipelineStage[] = [];
 
-  if (fromMy && userId) {
+  if (fromMy 
+  ) {
     pipeline.push({
       $match: { _id: new Types.ObjectId(userId) }, 
     });

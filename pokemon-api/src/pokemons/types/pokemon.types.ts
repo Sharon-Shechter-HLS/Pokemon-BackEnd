@@ -19,3 +19,9 @@ export type PokemonImage = {
   thumbnail: string;
   hires: string;
 };
+export type SortOrder = "asc" | "desc";
+
+export type Sort = {
+  key: string;
+  order: SortOrder;
+};

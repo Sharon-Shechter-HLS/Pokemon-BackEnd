@@ -2,7 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { PokemonsRepository } from '../repositories/pokemons.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { User, UserDocument } from '../schemas/userSchema';
+import { User, UserDocument } from '../../users/schemas/userSchema';
 import { SortKey, SortOrder, ERROR_USER_ID_REQUIRED, ERROR_FAILED_TO_FETCH_POKEMONS, ERROR_FAILED_TO_FETCH_RANDOM_POKEMON, SORT_BY_MAPPING, SORT_BY_VALIDATION_MESSAGE } from '../pokemonConsts';
 
 @Injectable()
@@ -15,21 +15,22 @@ export class PokemonsService {
   async getPokemons(
     page: number,
     rowsPerPage: number,
+    userId: string,
     sortBy?: string,
     search?: string,
     fromMy?: boolean,
-    userId?: string,
   ) {
     try {
-      if (fromMy && !userId) {
-        throw new BadRequestException(ERROR_USER_ID_REQUIRED);
+      if (!userId) {
+        throw new BadRequestException('User ID is required');
       }
 
+      
       let sort: { key: SortKey; order: SortOrder } | undefined;
       if (sortBy) {
         const sortMapping = SORT_BY_MAPPING[sortBy];
         if (!sortMapping) {
-          throw new BadRequestException(SORT_BY_VALIDATION_MESSAGE); 
+          throw new BadRequestException(SORT_BY_VALIDATION_MESSAGE);
         }
         sort = sortMapping;
       }
@@ -40,11 +41,10 @@ export class PokemonsService {
         sort,
         search,
         fromMy,
-        userId,
+        userId, 
       });
     } catch (error) {
-      console.error('Error fetching pokemons:', error.message);
-      throw new BadRequestException(ERROR_FAILED_TO_FETCH_POKEMONS);
+      throw new BadRequestException('Failed to fetch pokemons');
     }
   }
 

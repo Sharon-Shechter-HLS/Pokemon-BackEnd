@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongooseSchema } from 'mongoose';  
+import { Document, Types } from 'mongoose';  
 
 export type UserDocument = User & Document;
 
@@ -12,15 +12,15 @@ export class User {
   email: string;
 
   @Prop({
-    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Pokemon' }], 
+    type: [{ type: Types.ObjectId, ref: 'Pokemon' }], 
     default: [],
   })
-  userPokemonsCollection: MongooseSchema.Types.ObjectId[];
+  userPokemonsCollection: Types.ObjectId[];
 
   @Prop({
-    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Battle' }], 
+    type: [{ type: Types.ObjectId, ref: 'Battle' }], 
   })
-  userBattles: MongooseSchema.Types.ObjectId[];
+  userBattles: Types.ObjectId[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
