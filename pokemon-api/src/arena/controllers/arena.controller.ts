@@ -78,4 +78,20 @@ async switchPokemon(@Body() switchPokemonDto: switchPokemonDto): Promise<any> {
     );
   }
 }
+@Post('getAnotherOpponent')
+async getAnotherOpponent(@Body() gameActionDto: GameActionDto): Promise<any> {
+  try {
+    const { gameId } = gameActionDto;
+    this.logger.log(`Fetching another opponent for gameId: ${gameId}`);
+    const result = await this.arrenaService.getAnotherOpponent(gameId);
+    this.logger.log(`New opponent fetched successfully: ${JSON.stringify(result)}`);
+    return result;
+  } catch (error) {
+    this.logger.error(`Error fetching another opponent: ${error.message}`, error.stack);
+    throw new HttpException(
+      `Failed to fetch another opponent: ${error.message}`,
+      error.status || HttpStatus.INTERNAL_SERVER_ERROR
+    );
+  }
+}
 }

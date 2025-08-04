@@ -12,6 +12,7 @@ export const getPokemonsAggregation = (
   const pipeline: PipelineStage[] = [];
 
   if (fromMy 
+
   ) {
     pipeline.push({
       $match: { _id: new Types.ObjectId(userId) }, 

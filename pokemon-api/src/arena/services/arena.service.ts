@@ -78,19 +78,31 @@ export class ArrenaService {
       game.opponent.base.HP
     );
 
-    const updatedGameData = {
-      catchAttempts: updatedAttempts,
-      canCatch: canCatch(updatedAttempts),
-      turn: Turn.OPPONENT,
-      isCatched: success,
-    };
+    let updatedGameData;
+
+    // Force success if the user's Pokémon is Bulbasaur
+    if (game.user.name.english.toLowerCase() === "bulbasaur") {
+      updatedGameData = {
+        catchAttempts: updatedAttempts,
+        canCatch: canCatch(updatedAttempts),
+        turn: Turn.OPPONENT,
+        isCatched: true, 
+      };
+    } else {
+      updatedGameData = {
+        catchAttempts: updatedAttempts,
+        canCatch: canCatch(updatedAttempts),
+        turn: Turn.OPPONENT,
+        isCatched: success,
+      };
+    }
 
     await this.arrenaRepository.updateGame(game._id, updatedGameData);
 
     const updatedGame = await this.arrenaRepository.getBattleWithDetails(game._id);
     return updatedGame;
   } catch (error) {
-    throw error; 
+    throw error;
   }
 }
 
@@ -137,6 +149,35 @@ async attackPokemon(gameId: string): Promise<any> {
     return await this.arrenaRepository.getBattleWithDetails(game._id);
   } catch (error) {
     throw error; 
+  }
+}
+
+async getAnotherOpponent(gameId: string): Promise<any> {
+  try {
+    const game = await this.arrenaRepository.getBattleWithDetails(new Types.ObjectId(gameId));
+    if (!game) {
+      throw new HttpException(GAME_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
+    const newOpponent = await this.pokemonsService.getRandomPokemon();
+    if (!newOpponent) {
+      throw new HttpException('Failed to fetch a new opponent Pokémon.', HttpStatus.NOT_FOUND);
+    }
+
+    // Update opponent and reset catch-related fields
+    const updatedGameData = {
+      opponent: new Types.ObjectId(newOpponent._id),
+      opponentCurrentLife: newOpponent.base.HP,
+      isCatched: false, 
+      catchAttempts: 0, 
+    };
+
+    await this.arrenaRepository.updateGame(new Types.ObjectId(gameId), updatedGameData);
+
+    const updatedGame = await this.arrenaRepository.getBattleWithDetails(new Types.ObjectId(gameId));
+    return updatedGame;
+  } catch (error) {
+    throw new HttpException(error.message, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
 

@@ -10,7 +10,7 @@ export class battle {
   user: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'Pokemon', required: true })
-  opponent: Types.ObjectId;
+  opponent: Types.ObjectId; 
 
   @Prop({ required: true, enum: Turn })
   turn: Turn;
