@@ -170,6 +170,8 @@ async getAnotherOpponent(gameId: string): Promise<any> {
       turn: Turn.USER,
       isCatched: false, 
       catchAttempts: 0, 
+      winner: null
+      
     };
 
     await this.arrenaRepository.updateGame(new Types.ObjectId(gameId), updatedGameData);
@@ -188,6 +190,25 @@ async switchPokemon(gameId: string, newPokemonId: string): Promise<any> {
       throw new HttpException(GAME_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
+    // Check if the winner is "opponent"
+    if (game.winner === Winner.Opponent) {
+      const newPokemon = await this.pokemonsService.getPokemonById(newPokemonId);
+      if (!newPokemon) {
+        throw new HttpException('New Pokémon not found.', HttpStatus.NOT_FOUND);
+      }
+
+      const updatedGameData = {
+        user: new Types.ObjectId(newPokemon._id),
+        userCurrentLife: newPokemon.base.HP,
+        winner: null, 
+        turn: Turn.USER, 
+      };
+      await this.arrenaRepository.updateGame(new Types.ObjectId(gameId), updatedGameData);
+
+      const updatedGame = await this.arrenaRepository.getBattleWithDetails(new Types.ObjectId(gameId));
+      return updatedGame;
+    }
+
     if (game.hasSwitch) {
       throw new HttpException('Pokémon has already been switched in this game.', HttpStatus.BAD_REQUEST);
     }
@@ -201,6 +222,7 @@ async switchPokemon(gameId: string, newPokemonId: string): Promise<any> {
 
     const updatedGameData = {
       userCurrentLife: newPokemon.base.HP,
+      hasSwitch: true, 
     };
     await this.arrenaRepository.updateGame(new Types.ObjectId(gameId), updatedGameData);
 

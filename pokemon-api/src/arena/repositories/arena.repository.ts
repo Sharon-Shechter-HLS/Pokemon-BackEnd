@@ -22,6 +22,7 @@ export class ArrenaRepository {
   }
 
   async updateGame(gameId: Types.ObjectId, updatedData: Partial<battle>): Promise<void> {
+    console.log(`Updating game with ID: ${gameId} with data: ${JSON.stringify(updatedData)}`);
     await this.battleModel.findByIdAndUpdate(gameId, updatedData, { new: true }).exec();
   }
   async updateOpponent(gameId: Types.ObjectId, newOpponentId: Types.ObjectId, newOpponentLife: number): Promise<void> {
